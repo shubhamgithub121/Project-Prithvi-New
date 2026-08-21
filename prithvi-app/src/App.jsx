@@ -56,7 +56,13 @@ function AppRoutes() {
   )
 }
 
+import { useThemeStore } from './store/themeStore'
+
 function App() {
+  React.useEffect(() => {
+    useThemeStore.getState().initTheme()
+  }, [])
+
   return (
     <Router>
       <AuthProvider>

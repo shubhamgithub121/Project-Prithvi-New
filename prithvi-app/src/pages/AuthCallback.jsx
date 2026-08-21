@@ -16,13 +16,24 @@ const AuthCallback = () => {
     let authSubscription
 
     const handleCallback = async () => {
-      // Check if URL has error fragment from Supabase
       const hash = window.location.hash
-      if (hash && hash.includes('error=')) {
-        const params = new URLSearchParams(hash.substring(1))
-        const desc = params.get('error_description') || params.get('error')
+      const search = window.location.search
+      const params = new URLSearchParams(hash ? hash.substring(1) : search.substring(1))
+
+      const errorParam = params.get('error')
+      if (errorParam) {
+        const desc = params.get('error_description') || errorParam
         setErrorMsg('Authentication failed: ' + decodeURIComponent(desc).replace(/\+/g, ' '))
         return
+      }
+
+      const code = params.get('code')
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (exchangeError) {
+          setErrorMsg('Session error: ' + exchangeError.message)
+          return
+        }
       }
 
       const { data: { session }, error } = await supabase.auth.getSession()

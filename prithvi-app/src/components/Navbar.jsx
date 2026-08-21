@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo.png'
 import './Navbar.css'
+import { useThemeStore } from '../store/themeStore'
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const navigate = useNavigate()
   const { isAuthenticated, user, signOut } = useAuth()
+  const { theme, toggleTheme } = useThemeStore()
 
   const handleLogout = async () => {
     await signOut()
@@ -47,6 +49,9 @@ const Navbar = () => {
 
           {/* RIGHT: AUTH */}
           <div className="navbar-auth">
+            <button onClick={toggleTheme} className="btn-theme-toggle" style={{marginRight: '10px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1.2rem'}}>
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             {isAuthenticated ? (
               <>
                 <button onClick={handleLogout} className="btn-logout">

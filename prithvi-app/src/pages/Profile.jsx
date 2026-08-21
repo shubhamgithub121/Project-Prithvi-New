@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { supabase } from '../lib/supabaseClient'
 import './Profile.css'
 
 const Profile = () => {
@@ -10,6 +11,37 @@ const Profile = () => {
     carbonFootprintReduced: 0,
     totalEarnings: 0
   })
+
+  const [profile, setProfile] = useState({ name: '', avatar: '', bio: '' })
+  const [isEditing, setIsEditing] = useState(false)
+  const [bioInput, setBioInput] = useState('')
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, avatar, bio')
+        .eq('id', user.id)
+        .single()
+      
+      if (data) {
+        setProfile(data)
+        setBioInput(data.bio || '')
+      }
+    }
+    loadProfile()
+  }, [user])
+
+  const handleUpdateProfile = async () => {
+    if (!user) return
+    const updates = { bio: bioInput }
+    const { error } = await supabase.from('profiles').update(updates).eq('id', user.id)
+    if (!error) {
+      setProfile(prev => ({ ...prev, bio: bioInput }))
+      setIsEditing(false)
+    }
+  }
 
   const [pickupHistory] = useState([
     {
@@ -49,6 +81,7 @@ const Profile = () => {
   }, [pickupHistory])
 
   const displayName =
+    profile.name ||
     user?.user_metadata?.full_name ||
     user?.user_metadata?.name ||
     user?.email?.split('@')[0] ||
@@ -60,11 +93,23 @@ const Profile = () => {
         <div className="profile-header">
           <div className="user-info">
             <div className="user-avatar" data-testid="user-avatar">
-              {displayName.charAt(0).toUpperCase()}
+              {profile.avatar ? <img src={profile.avatar} alt="Avatar" style={{width:'100%', borderRadius:'50%'}}/> : displayName.charAt(0).toUpperCase()}
             </div>
             <div>
               <h1 className="user-name">{displayName}</h1>
               <p className="user-email">{user?.email || 'user@example.com'}</p>
+              {isEditing ? (
+                <div style={{marginTop: '10px'}}>
+                  <textarea value={bioInput} onChange={e => setBioInput(e.target.value)} style={{width: '100%', marginBottom: '10px', padding: '5px'}}/>
+                  <button onClick={handleUpdateProfile} className="btn btn-primary" style={{marginRight: '10px'}}>Save</button>
+                  <button onClick={() => setIsEditing(false)} className="btn">Cancel</button>
+                </div>
+              ) : (
+                <div style={{marginTop: '10px'}}>
+                  <p>{profile.bio || 'No bio yet.'}</p>
+                  <button onClick={() => setIsEditing(true)} className="btn" style={{marginTop: '10px'}}>Edit Bio</button>
+                </div>
+              )}
             </div>
           </div>
         </div>
