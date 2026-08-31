@@ -8,16 +8,26 @@ from pathlib import Path
 import logging
 import os
 import uuid
+import contextlib
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 from db.supabase import client as supabase
 from auth import get_current_user, get_profile
+from tracking import tracking_router, start_poller
 
 
-app = FastAPI()
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    start_poller()
+    yield
+    # Shutdown (if needed)
+
+app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
+api_router.include_router(tracking_router)
 
 
 # ---------- Request / Response models ----------
