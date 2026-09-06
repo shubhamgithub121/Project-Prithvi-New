@@ -1,0 +1,555 @@
+/* Schedule Pickup — built on the same design tokens as every other page
+   (global.css: --primary-green, --bg-card, --border-light, etc.), so it
+   follows the site-wide light/dark toggle automatically instead of being
+   permanently dark. */
+
+.schedule-page {
+  padding: 48px 0 80px;
+  background: var(--off-white);
+  min-height: calc(100vh - 140px);
+  display: flex;
+  justify-content: center;
+}
+
+.schedule-card {
+  width: 100%;
+  max-width: 760px;
+  padding: 40px;
+}
+
+.schedule-header {
+  margin-bottom: 40px;
+}
+
+.schedule-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.schedule-subtitle {
+  color: var(--text-gray);
+  font-size: 1rem;
+}
+
+/* ─── Stepper ─── */
+
+.stepper {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 48px;
+}
+
+.stepper-track {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--border-light);
+  z-index: 0;
+}
+
+.stepper-track-fill {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  height: 3px;
+  background: var(--primary-green);
+  z-index: 0;
+  transition: width 0.4s ease;
+}
+
+.step-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-card);
+  padding: 0 12px;
+}
+
+.step-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.05rem;
+  background: var(--off-white);
+  color: var(--text-gray);
+  border: 2px solid var(--border-light);
+  transition: all 0.3s ease;
+}
+
+.step-circle.active {
+  background: var(--primary-green);
+  color: var(--white);
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 6px rgba(74, 222, 128, 0.15);
+}
+
+.step-circle.passed {
+  background: var(--accent-green);
+  color: var(--primary-green);
+  border-color: var(--primary-green);
+}
+
+.step-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-gray);
+  transition: color 0.3s ease;
+}
+
+.step-label.active {
+  color: var(--primary-green);
+  font-weight: 600;
+}
+
+/* ─── Step content ─── */
+
+.step-content {
+  animation: schedule-fade-in 0.35s ease;
+}
+
+@keyframes schedule-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-green);
+}
+
+.form-section-icon {
+  font-size: 1.25rem;
+}
+
+.form-section-title-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--primary-green);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-gray);
+  margin-bottom: 8px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-card);
+  color: var(--text-dark);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-green);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+
+.input-field:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-field.input-error {
+  border-color: #d64545;
+}
+
+.field-error {
+  color: #d64545;
+  font-size: 0.8125rem;
+  margin-top: 6px;
+}
+
+.address-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.map-frame {
+  width: 100%;
+  height: 260px;
+  background: var(--off-white);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.map-message {
+  color: var(--text-gray);
+  font-size: 0.9375rem;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.map-message-error {
+  color: #d64545;
+}
+
+/* ─── Time slots ─── */
+
+.time-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.time-slot-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-gray);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.time-slot-option:hover {
+  border-color: var(--primary-green);
+  transform: translateY(-2px);
+}
+
+.time-slot-option.selected {
+  background: var(--accent-green);
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+}
+
+.time-slot-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.time-slot-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Weight stepper ─── */
+
+.weight-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weight-btn {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-dark);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.weight-btn:hover {
+  border-color: var(--primary-green);
+  color: var(--primary-green);
+  transform: translateY(-2px);
+}
+
+.weight-input {
+  max-width: 120px;
+  text-align: center;
+}
+
+/* ─── Review step ─── */
+
+.review-card {
+  background: var(--off-white);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.review-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 20px;
+  padding-bottom: 4px;
+}
+
+.review-label {
+  font-size: 0.8125rem;
+  color: var(--text-gray);
+  margin-bottom: 4px;
+}
+
+.review-value {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.review-sub {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  margin-top: 2px;
+}
+
+.review-edit-btn {
+  background: none;
+  border: none;
+  color: var(--primary-green);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.review-edit-btn:hover {
+  text-decoration: underline;
+}
+
+.earnings-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent-green) 0%, var(--light-green) 100%);
+}
+
+.earnings-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--primary-green);
+}
+
+.earnings-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.earnings-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  font-family: 'Manrope', sans-serif;
+}
+
+/* ─── Error banner ─── */
+
+.form-error-banner {
+  background: #fee;
+  color: #c33;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #fcc;
+  font-size: 0.9375rem;
+  margin-top: 24px;
+}
+
+/* ─── Nav buttons ─── */
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 40px;
+}
+
+.nav-spacer {
+  flex: 1;
+  max-width: 140px;
+}
+
+.nav-btn {
+  flex: 1;
+  max-width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+}
+
+.nav-btn-end {
+  margin-left: auto;
+}
+
+.nav-btn-submit {
+  max-width: 220px;
+}
+
+.nav-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.nav-btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-btn-icon.spin {
+  animation: schedule-spin 0.8s linear infinite;
+}
+
+@keyframes schedule-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Success screen ─── */
+
+.schedule-success-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.schedule-success-card {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  padding: 48px;
+}
+
+.success-icon-circle {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.success-icon {
+  width: 44px;
+  height: 44px;
+  color: var(--primary-green);
+}
+
+.success-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.success-subtitle {
+  color: var(--text-gray);
+  margin-bottom: 32px;
+}
+
+.pickup-id-box {
+  background: var(--off-white);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 32px;
+}
+
+.pickup-id-label {
+  font-size: 0.8125rem;
+  color: var(--text-gray);
+  margin-bottom: 4px;
+}
+
+.pickup-id-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: 'Manrope', sans-serif;
+  letter-spacing: 0.05em;
+  color: var(--text-dark);
+}
+
+.schedule-full-btn {
+  width: 100%;
+}
+
+.redirect-note {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  margin-top: 16px;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+  .schedule-card {
+    padding: 28px 20px;
+  }
+
+  .schedule-title {
+    font-size: 1.6rem;
+  }
+
+  .step-label {
+    display: none;
+  }
+
+  .review-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .earnings-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Any, List, Optional, cast
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,31 +15,34 @@ load_dotenv(ROOT_DIR / '.env')
 
 from db.supabase import client as supabase
 from auth import get_current_user, get_profile
-from tracking import tracking_router, start_poller
+from tracking import start_poller
+from blogs import start_blog_sync_poller
+from pickups import pickups_router
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     start_poller()
+    start_blog_sync_poller()
     yield
     # Shutdown (if needed)
 
 app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
-api_router.include_router(tracking_router)
+api_router.include_router(pickups_router)
 
 
 # ---------- Request / Response models ----------
 
 class RegisterRequest(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
     phone: Optional[str] = None
 
 class LoginRequest(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class AuthResponse(BaseModel):
