@@ -16,42 +16,37 @@ const Home = () => {
 
   useEffect(() => {
     let channel;
-    async function syncBlogs() {
-      let richBlogs = [];
-      try {
-        const res = await fetch('https://dev.to/api/articles?tag=environment&per_page=6')
-        if (res.ok) {
-          const data = await res.json()
-          
-          richBlogs = data.map(b => ({
-            id: b.id,
-            title: b.title,
-            url: b.url,
-            image: b.cover_image || b.social_image || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80',
-            excerpt: b.description || 'Learn more about environmental impact, sustainability, and plastic recycling.',
-            created_at: b.published_at || b.created_at,
-            date: new Date(b.published_at || b.created_at).toLocaleDateString()
-          }))
-          setBlogs(richBlogs)
+    async function loadBlogs() {
+      // The backend periodically syncs dev.to articles into the Supabase
+      // `blogs` table (see backend/blogs.py) - the frontend only ever reads
+      // this table now; it never writes to it.
+      const { data: dbBlogs } = await supabase
+        .from('blogs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(6)
 
-          // Upsert to Supabase matching expected schema
-          const formatted = data.map(b => ({
-            id: b.id,
-            title: b.title,
-            url: b.url,
-            created_at: b.published_at || b.created_at
-          }))
-          await supabase.from('blogs').upsert(formatted)
-        }
-      } catch (e) {
-        console.error('Failed to fetch and upsert blogs:', e)
-      }
-
-      // If API failed, fallback to Supabase DB
-      if (richBlogs.length === 0) {
-        const { data: dbBlogs } = await supabase.from('blogs').select('*').order('created_at', { ascending: false }).limit(6)
-        if (dbBlogs && dbBlogs.length > 0) {
-          setBlogs(dbBlogs)
+      if (dbBlogs && dbBlogs.length > 0) {
+        setBlogs(dbBlogs)
+      } else {
+        // Cold-start fallback, before the backend's first sync tick: fetch
+        // dev.to directly for display only. Never persisted from the browser.
+        try {
+          const res = await fetch('https://dev.to/api/articles?tag=environment&per_page=6')
+          if (res.ok) {
+            const data = await res.json()
+            setBlogs(data.map(b => ({
+              id: b.id,
+              title: b.title,
+              url: b.url,
+              image: b.cover_image || b.social_image || 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80',
+              excerpt: b.description || 'Learn more about environmental impact, sustainability, and plastic recycling.',
+              created_at: b.published_at || b.created_at,
+              date: new Date(b.published_at || b.created_at).toLocaleDateString()
+            })))
+          }
+        } catch (e) {
+          console.error('Failed to fetch fallback blogs:', e)
         }
       }
 
@@ -72,7 +67,7 @@ const Home = () => {
         )
         .subscribe()
     }
-    syncBlogs()
+    loadBlogs()
     return () => {
       if (channel) supabase.removeChannel(channel)
     }

@@ -29,9 +29,11 @@ def mock_supabase():
     sys.modules["db.supabase"].client = new_mock
     import auth as _auth
     _auth.client = new_mock
-    try:
-        import server as _server
-        _server.supabase = new_mock
-    except ImportError:
-        pass
+    for module_name in ("server", "pickups", "tracking", "blogs"):
+        try:
+            module = __import__(module_name)
+        except ImportError:
+            continue
+        if hasattr(module, "supabase"):
+            module.supabase = new_mock
     yield new_mock
