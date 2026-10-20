@@ -29,6 +29,31 @@ export async function apiGet(path) {
   return handleResponse(res)
 }
 
+// POST that reads a server-sent event stream, calling onEvent for each `data:` JSON payload.
+export async function apiStream(path, data, onEvent, signal) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: await authHeaders(),
+    body: JSON.stringify(data ?? {}),
+    signal,
+  })
+  if (!res.ok) return handleResponse(res)
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const chunks = buffer.split('\n\n')
+    buffer = chunks.pop()
+    for (const chunk of chunks) {
+      if (chunk.startsWith('data: ')) onEvent(JSON.parse(chunk.slice(6)))
+    }
+  }
+}
+
 export async function apiPost(path, data) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',

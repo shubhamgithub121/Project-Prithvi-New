@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ChatWidget from './components/ChatWidget'
 import Home from './pages/Home'
 import About from './pages/About'
 import Shop from './pages/Shop'
@@ -52,6 +53,7 @@ function AppRoutes() {
         </Routes>
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   )
 }

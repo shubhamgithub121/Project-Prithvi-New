@@ -18,6 +18,7 @@ from auth import get_current_user, get_profile
 from tracking import start_poller
 from blogs import start_blog_sync_poller
 from pickups import pickups_router
+from chat import chat_router
 
 
 @contextlib.asynccontextmanager
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 api_router = APIRouter(prefix="/api")
 api_router.include_router(pickups_router)
+api_router.include_router(chat_router)
 
 
 # ---------- Request / Response models ----------

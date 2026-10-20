@@ -1,6 +1,6 @@
 -- Row Level Security hardening.
 --
--- Run this (after pickups_schema.sql, profiles_schema.sql, and
+-- Run this (after pickups_schema.sql, profiles_schema.sql, chat_schema.sql and
 -- rider_tracking_schema.sql) in the Supabase SQL editor. It cannot be applied from this repo/sandbox: there is
 -- no direct Postgres connection string here, only the REST URL + API keys,
 -- and this is a live project so it should be reviewed before running anyway.
@@ -99,11 +99,30 @@ BEGIN
   END IF;
 END $$;
 
+-- ---------- chat_sessions / chat_messages: users read their own; backend writes ----------
+-- Guest sessions (user_id NULL) are never readable from the browser; the
+-- backend serves them by session id instead.
+DO $$
+BEGIN
+  IF to_regclass('public.chat_sessions') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'DROP POLICY IF EXISTS chat_sessions_select_own ON chat_sessions';
+    EXECUTE 'CREATE POLICY chat_sessions_select_own ON chat_sessions FOR SELECT USING (auth.uid() = user_id)';
+  END IF;
+  IF to_regclass('public.chat_messages') IS NOT NULL THEN
+    EXECUTE 'ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY';
+    EXECUTE 'DROP POLICY IF EXISTS chat_messages_select_own ON chat_messages';
+    EXECUTE 'CREATE POLICY chat_messages_select_own ON chat_messages FOR SELECT USING (
+      EXISTS (SELECT 1 FROM chat_sessions s WHERE s.id = chat_messages.session_id AND s.user_id = auth.uid()))';
+  END IF;
+END $$;
+
 -- ---------- report: which of the expected tables actually exist ----------
 SELECT expected_table,
        (to_regclass('public.' || expected_table) IS NOT NULL) AS exists_in_db
 FROM unnest(ARRAY[
     'pickups', 'profiles', 'users', 'blogs',
-    'rider_locations', 'rider_locations_latest'
+    'rider_locations', 'rider_locations_latest',
+    'chat_sessions', 'chat_messages'
 ]) AS expected_table
 ORDER BY exists_in_db, expected_table;
